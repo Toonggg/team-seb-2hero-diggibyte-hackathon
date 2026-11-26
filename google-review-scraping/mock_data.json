@@ -1,0 +1,54 @@
+[
+  {
+    "id": "mock_seb_kungstradgarden",
+    "displayName": {"text": "SEB Kungsträdgårdsgatan"},
+    "formattedAddress": "Kungsträdgårdsgatan 8, 111 47 Stockholm, Sweden",
+    "location": {"latitude": 59.3304, "longitude": 18.0717},
+    "primaryType": "bank",
+    "types": ["bank", "finance"],
+    "rating": 3.4,
+    "userRatingCount": 142,
+    "reviews": [
+      {
+        "rating": 5,
+        "publishTime": "2026-10-12T09:15:00Z",
+        "authorAttribution": {"displayName": "Anna S."},
+        "originalText": {"text": "Mycket trevlig och hjälpsam personal, smidigt möte!", "languageCode": "sv"}
+      },
+      {
+        "rating": 2,
+        "publishTime": "2026-09-28T14:22:00Z",
+        "authorAttribution": {"displayName": "Erik L."},
+        "originalText": {"text": "Long waiting time even with a booked appointment. Frustrating.", "languageCode": "en"}
+      }
+    ]
+  },
+  {
+    "id": "mock_seb_goteborg",
+    "displayName": {"text": "SEB Östra Hamngatan"},
+    "formattedAddress": "Östra Hamngatan 24, 411 09 Göteborg, Sweden",
+    "location": {"latitude": 57.7072, "longitude": 11.9668},
+    "primaryType": "bank",
+    "types": ["bank", "finance"],
+    "rating": 4.1,
+    "userRatingCount": 95,
+    "reviews": [
+      {
+        "rating": 5,
+        "publishTime": "2026-11-10T13:10:00Z",
+        "authorAttribution": {"displayName": "Oskar N."},
+        "originalText": {"text": "Snabbt, enkelt och proffsigt bemötande. Rekommenderar!", "languageCode": "sv"}
+      }
+    ]
+  },
+  {
+    "id": "mock_noise_atm",
+    "displayName": {"text": "SEB Bankomat ATM"},
+    "formattedAddress": "Drottninggatan 10, Stockholm, Sweden",
+    "primaryType": "atm",
+    "types": ["atm", "finance"],
+    "rating": 2.0,
+    "userRatingCount": 5,
+    "reviews": []
+  }
+]

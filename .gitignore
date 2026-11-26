@@ -47,8 +47,12 @@ htmlcov/
 # Environment variables & Databricks local config
 .env
 .env.*
+!.env.example
 .databrickscfg
 .databricks/
+
+# Generated scraper outputs
+google-review-scraping/output/
 
 # Large media & local data
 *.mp4
