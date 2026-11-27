@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SEB Kort | Customer Signals</title>
+<style>
+*{box-sizing:border-box}[hidden]{display:none!important}body{margin:0;background:#f2f5f4;color:#132b2a;font:16px system-ui,sans-serif}header{background:#112d2b;color:white;padding:20px max(5vw,20px);display:flex;align-items:center;justify-content:space-between;gap:12px}header b{letter-spacing:.12em}header span{color:#b9dfd7;font-size:14px}main{max-width:1400px;margin:auto;padding:30px max(4vw,18px)}h1{margin:0;font-size:clamp(2rem,5vw,3rem);letter-spacing:-.045em}h2{font-size:1.25rem;margin:0 0 10px}h3{font-size:1.05rem;margin:0 0 5px}p{line-height:1.5;margin:6px 0 14px}small,.muted{color:#48615d}small{font-size:.85rem}nav,.toolbar,.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}nav{border-bottom:1px solid #ccdcd8;margin:22px 0}button,select,input,textarea{font:inherit}button{cursor:pointer;color:inherit;background:white;border:1px solid #9eb5af;border-radius:8px;padding:8px 12px;font-weight:650}button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #278c70;outline-offset:2px}nav button{border:0;border-radius:8px 8px 0 0;background:transparent}nav button[aria-current=true]{background:#dbede5;box-shadow:inset 0 -3px #176247}.primary{background:#126348;color:#fff;border-color:#126348}.toolbar{margin:0 0 16px;align-items:end}label{display:grid;gap:5px;font-size:.9rem;font-weight:650}select,input[type=text],textarea{padding:8px;border:1px solid #9eb5af;border-radius:7px;background:#fff;color:inherit;width:100%}.panel{background:#fff;border:1px solid #d3e0dd;border-radius:14px;padding:19px;min-width:0}.cols,.cards{display:grid;gap:16px;margin-bottom:16px}.cols{grid-template-columns:1.1fr 1fr}.cards{grid-template-columns:repeat(3,1fr)}.metric{display:block;font-size:2rem;margin:7px 0;font-weight:750}.bar{height:8px;background:#e9efed;border-radius:6px;overflow:hidden;margin:5px 0 11px}.bar i{display:block;height:100%;background:#34856b}.spread{justify-content:space-between}.badge{background:#e1f1e9;border-radius:100px;padding:4px 9px;font-size:.85rem}.record{border-top:1px solid #e0e9e6;padding:13px 0}.record:first-child{border-top:0}.record summary{cursor:pointer}.record p:last-child{margin-bottom:0}.fields{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}.check{display:flex;align-items:center;gap:8px}.check input{width:17px;height:17px}.chart{display:flex;gap:5px;align-items:end;height:105px;margin:15px 0 5px}.chart div{flex:1;background:#419176;border-radius:5px 5px 0 0}.trend-note{margin:0 0 14px}.group{margin-bottom:12px}.group ul{padding-left:20px}.group strong{overflow-wrap:anywhere}.status{min-height:24px}.evidence{padding:10px 13px;background:#f1f6f4;border-left:3px solid #43866e;border-radius:5px;margin:9px 0}.kpi-label{font-weight:650}@media(max-width:760px){.cols,.cards{grid-template-columns:1fr}.fields{grid-template-columns:1fr}header{padding:15px}}
+</style>
+<header><b>SEB KORT</b><span>Hackathon prototype · Synthetic data</span></header>
+<main><h1>Customer Signals</h1>
+<nav aria-label="Dashboard views"><button id="performanceTab" aria-current="true">Performance management</button><button id="actionsTab" aria-current="false">Actions</button></nav>
+<section id="performance" aria-label="Performance management">
+<div class="toolbar"><label>Stakeholder<select id="persona"></select></label><label>Reporting week<select id="week"></select></label></div>
+<div class="cards" id="kpis"></div>
+<div class="cols">
+<section class="panel"><h2>Top pain points and topics</h2><p class="muted">Support dispositions by volume. They indicate what customers contacted support about.</p><div id="topics"></div></section>
+<section class="panel"><h2>Emerging signals</h2><p class="muted">Topics gaining share versus the prior week. Use them to decide what to investigate next.</p><div id="trends"></div><h3>Contact volume by week</h3><div id="chart" class="chart" aria-hidden="true"></div><div class="row spread"><small>W37</small><small>W48</small></div><details><summary>Weekly volumes</summary><p id="chartText"></p></details></section>
+</div>
+<section class="panel"><div class="row spread"><h2>What customers want and feel</h2><small>Selected evidence · scope shown on each finding</small></div><div id="insights"></div></section>
+</section>
+<section id="actions" aria-label="Actions" hidden>
+<div class="cols">
+<section class="panel"><h2>Findings</h2><p class="muted">Select a finding to review the evidence and assign an owner.</p><div id="inbox"></div></section>
+<section class="panel"><h2 id="formTitle">Assign finding</h2>
+<p id="actionPrompt" class="muted">Select a finding to get started.</p><form id="actionForm" hidden>
+<div id="findingEvidence"></div>
+<div class="fields"><label>Next action<select id="nextAction"><option>Investigate product opportunity</option><option>Triage suspected bug</option><option>Improve guidance or onboarding</option><option>Monitor trend</option><option>Escalate for specialist review</option></select></label><label>Status<select id="state"><option>Proposed</option><option>In progress</option><option>Done</option></select></label>
+<label>Priority<select id="priority"><option>Needs review</option><option>Urgent</option><option>High</option><option>Medium</option><option>Low</option></select></label><label>Assignment path<select id="path"><option value="review">Needs routing review</option><option value="train">Release train and team</option><option value="direct">Direct to team</option></select></label>
+<label id="trainField">Release train<select id="train"></select></label><label id="teamField">Assigned team<select id="team"></select></label></div>
+<label>Action or routing notes<textarea id="notes" rows="3" placeholder="What should the owner do next?"></textarea></label>
+<p><small>Team names are illustrative. Assignments are saved in this browser where supported.</small></p>
+<div class="row"><button class="primary" type="submit">Save assignment</button><button type="button" id="reset">Close finding</button></div>
+<p class="status" id="status" role="status"></p>
+</form></section>
+</div>
+<section class="panel"><h2>Finding assignments</h2><div id="assignments"></div></section>
+</section></main>
+<script>
+const examples=[
+{id:"pin",title:"View card PIN in the app",person:"Private cardholder",area:"Card lifecycle and controls",type:"Unmet need",priority:"Needs review",summary:"Customers want to retrieve their PIN when they need to use their card. Check whether the requests reflect missing functionality or difficulty finding it.",source:"Workshop scenario based on Gabriella's historical example. Illustrative evidence.",evidence:"A cardholder asks whether they can see their PIN in the app before using the card.",path:"train",train:"Digital Channels",team:"App Experience",reason:"The request concerns an in-app self-service journey. Confirm who owns the PIN capability."},
+{id:"receipts",title:"Receipts missing from expense reports",person:"Corporate cardholder",area:"Receipts and expense management",type:"Setup constraint",priority:"Medium � draft",summary:"Receipt capture works. The employer has not enabled the integration, so the cardholder uploads receipts again. Repeated reports could identify an onboarding improvement.",source:"Synthetic dataset � CONV-2026W37-000002 � paraphrased",evidence:"The cardholder photographs receipts in AirPlus, then uploads them again when filing expenses. Support says the employer's integration is disabled.",path:"direct",train:"",team:"Corporate Onboarding",reason:"The employer's integration setup is the next step to investigate."},
+{id:"cost",title:"Bulk cost-centre updates for cards",person:"Corporate administrator",area:"Corporate programme administration",type:"Unmet need",priority:"Medium � draft",summary:"An administrator asks about updating cost centres for several older cards. Review whether the available process meets the need for bulk maintenance.",source:"Synthetic dataset � CONV-2026W37-000001 � paraphrased",evidence:"Several older cards need cost-centre updates. The administrator asks whether those changes can be made in bulk.",path:"train",train:"Info",team:"Reporting and Statements",reason:"The request relates to reporting data maintained on cards. Confirm the accountable team."},
+{id:"sign",title:"Overseas signatories blocked by e-ID requirement",person:"Corporate administrator",area:"Digital access and identity",type:"Workflow constraint",priority:"High � draft",summary:"A signing workflow asks for Nordic e-ID, which the overseas signatories lack. Check the available signing options and who owns the journey.",source:"Synthetic dataset � CONV-2026W40-001032 � paraphrased",evidence:"The email link asks for BankID. The registered signatories are overseas and lack Nordic e-ID.",path:"review",train:"",team:"",reason:"Confirm ownership of the signing workflow and available alternatives."}
+];
+const data=[{"persona":"corporate_administrator","week":"2026-W37","total":63,"ratings":[21,86,2],"topics":[{"n":9,"name":"Card mgmt"},{"n":3,"name":"E-billing"},{"n":8,"name":"Invoice"},{"n":5,"name":"KYC/AML"},{"n":6,"name":"Merchant"},{"n":5,"name":"Other"},{"n":9,"name":"Payment/Statement"},{"n":4,"name":"Portal"},{"n":6,"name":"Receipts"},{"n":8,"name":"Transaction"}]},{"persona":"corporate_administrator","week":"2026-W38","total":66,"ratings":[23,97,0],"topics":[{"n":2,"name":"Bot"},{"n":10,"name":"Card mgmt"},{"n":2,"name":"E-billing"},{"n":8,"name":"Invoice"},{"n":11,"name":"KYC/AML"},{"n":5,"name":"Merchant"},{"n":5,"name":"Other"},{"n":7,"name":"Payment/Statement"},{"n":8,"name":"Portal"},{"n":5,"name":"Receipts"},{"n":3,"name":"Transaction"}]},{"persona":"corporate_administrator","week":"2026-W39","total":74,"ratings":[21,79,2],"topics":[{"n":1,"name":"Bot"},{"n":14,"name":"Card mgmt"},{"n":3,"name":"E-billing"},{"n":6,"name":"Invoice"},{"n":9,"name":"KYC/AML"},{"n":5,"name":"Merchant"},{"n":13,"name":"Other"},{"n":6,"name":"Payment/Statement"},{"n":7,"name":"Portal"},{"n":5,"name":"Receipts"},{"n":5,"name":"Transaction"}]},{"persona":"corporate_administrator","week":"2026-W40","total":80,"ratings":[24,93,3],"topics":[{"n":3,"name":"Bot"},{"n":9,"name":"Card mgmt"},{"n":1,"name":"E-billing"},{"n":13,"name":"Invoice"},{"n":17,"name":"KYC/AML"},{"n":3,"name":"Merchant"},{"n":4,"name":"Other"},{"n":9,"name":"Payment/Statement"},{"n":11,"name":"Portal"},{"n":4,"name":"Receipts"},{"n":6,"name":"Transaction"}]},{"persona":"corporate_administrator","week":"2026-W41","total":84,"ratings":[18,73,2],"topics":[{"n":5,"name":"Bot"},{"n":11,"name":"Card mgmt"},{"n":13,"name":"Invoice"},{"n":17,"name":"KYC/AML"},{"n":5,"name":"Merchant"},{"n":14,"name":"Other"},{"n":5,"name":"Payment/Statement"},{"n":4,"name":"Portal"},{"n":3,"name":"Receipts"},{"n":7,"name":"Transaction"}]},{"persona":"corporate_administrator","week":"2026-W42","total":86,"ratings":[26,100,4],"topics":[{"n":1,"name":"Bot"},{"n":7,"name":"Card mgmt"},{"n":4,"name":"E-billing"},{"n":9,"name":"Invoice"},{"n":16,"name":"KYC/AML"},{"n":3,"name":"Merchant"},{"n":11,"name":"Other"},{"n":9,"name":"Payment/Statement"},{"n":16,"name":"Portal"},{"n":5,"name":"Receipts"},{"n":5,"name":"Transaction"}]},{"persona":"corporate_administrator","week":"2026-W43","total":76,"ratings":[24,95,3],"topics":[{"n":4,"name":"Bot"},{"n":16,"name":"Card mgmt"},{"n":3,"name":"E-billing"},{"n":8,"name":"Invoice"},{"n":11,"name":"KYC/AML"},{"n":3,"name":"Merchant"},{"n":8,"name":"Other"},{"n":5,"name":"Payment/Statement"},{"n":9,"name":"Portal"},{"n":5,"name":"Receipts"},{"n":4,"name":"Transaction"}]},{"persona":"corporate_administrator","week":"2026-W44","total":67,"ratings":[15,56,3],"topics":[{"n":5,"name":"Bot"},{"n":7,"name":"Card mgmt"},{"n":5,"name":"E-billing"},{"n":11,"name":"Invoice"},{"n":8,"name":"KYC/AML"},{"n":5,"name":"Merchant"},{"n":8,"name":"Other"},{"n":6,"name":"Payment/Statement"},{"n":1,"name":"Portal"},{"n":5,"name":"Receipts"},{"n":6,"name":"Transaction"}]},{"persona":"corporate_administrator","week":"2026-W45","total":68,"ratings":[18,75,2],"topics":[{"n":2,"name":"Bot"},{"n":10,"name":"Card mgmt"},{"n":13,"name":"E-billing"},{"n":8,"name":"Invoice"},{"n":4,"name":"KYC/AML"},{"n":7,"name":"Merchant"},{"n":7,"name":"Other"},{"n":5,"name":"Payment/Statement"},{"n":4,"name":"Portal"},{"n":5,"name":"Receipts"},{"n":3,"name":"Transaction"}]},{"persona":"corporate_administrator","week":"2026-W46","total":83,"ratings":[29,109,7],"topics":[{"n":4,"name":"Bot"},{"n":10,"name":"Card mgmt"},{"n":7,"name":"E-billing"},{"n":9,"name":"Invoice"},{"n":6,"name":"KYC/AML"},{"n":12,"name":"Merchant"},{"n":10,"name":"Other"},{"n":5,"name":"Payment/Statement"},{"n":7,"name":"Portal"},{"n":6,"name":"Receipts"},{"n":7,"name":"Transaction"}]},{"persona":"corporate_administrator","week":"2026-W47","total":80,"ratings":[31,100,10],"topics":[{"n":5,"name":"Bot"},{"n":11,"name":"Card mgmt"},{"n":9,"name":"E-billing"},{"n":6,"name":"Invoice"},{"n":3,"name":"KYC/AML"},{"n":6,"name":"Merchant"},{"n":8,"name":"Other"},{"n":12,"name":"Payment/Statement"},{"n":7,"name":"Portal"},{"n":7,"name":"Receipts"},{"n":6,"name":"Transaction"}]},{"persona":"corporate_administrator","week":"2026-W48","total":69,"ratings":[17,69,2],"topics":[{"n":5,"name":"Bot"},{"n":4,"name":"Card mgmt"},{"n":8,"name":"E-billing"},{"n":11,"name":"Invoice"},{"n":3,"name":"KYC/AML"},{"n":10,"name":"Merchant"},{"n":6,"name":"Other"},{"n":7,"name":"Payment/Statement"},{"n":5,"name":"Portal"},{"n":4,"name":"Receipts"},{"n":6,"name":"Transaction"}]},{"persona":"corporate_cardholder","week":"2026-W37","total":88,"ratings":[19,68,3],"topics":[{"n":6,"name":"App/Login"},{"n":1,"name":"Benefits"},{"n":6,"name":"Bot"},{"n":5,"name":"Card closure"},{"n":11,"name":"Card/PIN"},{"n":11,"name":"Decline"},{"n":7,"name":"Fraud/Dispute"},{"n":8,"name":"Invoice"},{"n":9,"name":"Limit"},{"n":12,"name":"Lost/Stolen"},{"n":7,"name":"Other"},{"n":5,"name":"Receipts"}]},{"persona":"corporate_cardholder","week":"2026-W38","total":99,"ratings":[30,106,6],"topics":[{"n":12,"name":"App/Login"},{"n":2,"name":"Benefits"},{"n":4,"name":"Bot"},{"n":6,"name":"Card closure"},{"n":5,"name":"Card/PIN"},{"n":18,"name":"Decline"},{"n":7,"name":"Fraud/Dispute"},{"n":4,"name":"Invoice"},{"n":12,"name":"Limit"},{"n":11,"name":"Lost/Stolen"},{"n":11,"name":"Other"},{"n":7,"name":"Receipts"}]},{"persona":"corporate_cardholder","week":"2026-W39","total":98,"ratings":[30,114,5],"topics":[{"n":6,"name":"App/Login"},{"n":2,"name":"Benefits"},{"n":7,"name":"Bot"},{"n":3,"name":"Card closure"},{"n":8,"name":"Card/PIN"},{"n":33,"name":"Decline"},{"n":4,"name":"Fraud/Dispute"},{"n":11,"name":"Invoice"},{"n":9,"name":"Limit"},{"n":4,"name":"Lost/Stolen"},{"n":6,"name":"Other"},{"n":5,"name":"Receipts"}]},{"persona":"corporate_cardholder","week":"2026-W40","total":104,"ratings":[27,99,5],"topics":[{"n":12,"name":"App/Login"},{"n":4,"name":"Benefits"},{"n":8,"name":"Bot"},{"n":2,"name":"Card closure"},{"n":9,"name":"Card/PIN"},{"n":31,"name":"Decline"},{"n":3,"name":"Fraud/Dispute"},{"n":2,"name":"Invoice"},{"n":8,"name":"Limit"},{"n":9,"name":"Lost/Stolen"},{"n":7,"name":"Other"},{"n":9,"name":"Receipts"}]},{"persona":"corporate_cardholder","week":"2026-W41","total":98,"ratings":[29,99,9],"topics":[{"n":13,"name":"App/Login"},{"n":9,"name":"Bot"},{"n":2,"name":"Card closure"},{"n":8,"name":"Card/PIN"},{"n":17,"name":"Decline"},{"n":5,"name":"Fraud/Dispute"},{"n":4,"name":"Invoice"},{"n":10,"name":"Limit"},{"n":8,"name":"Lost/Stolen"},{"n":15,"name":"Other"},{"n":7,"name":"Receipts"}]},{"persona":"corporate_cardholder","week":"2026-W42","total":106,"ratings":[28,105,5],"topics":[{"n":17,"name":"App/Login"},{"n":3,"name":"Benefits"},{"n":9,"name":"Bot"},{"n":3,"name":"Card closure"},{"n":6,"name":"Card/PIN"},{"n":16,"name":"Decline"},{"n":2,"name":"Fraud/Dispute"},{"n":11,"name":"Invoice"},{"n":10,"name":"Limit"},{"n":5,"name":"Lost/Stolen"},{"n":14,"name":"Other"},{"n":10,"name":"Receipts"}]},{"persona":"corporate_cardholder","week":"2026-W43","total":114,"ratings":[30,111,6],"topics":[{"n":16,"name":"App/Login"},{"n":1,"name":"Benefits"},{"n":8,"name":"Bot"},{"n":5,"name":"Card closure"},{"n":5,"name":"Card/PIN"},{"n":13,"name":"Decline"},{"n":4,"name":"Fraud/Dispute"},{"n":9,"name":"Invoice"},{"n":7,"name":"Limit"},{"n":6,"name":"Lost/Stolen"},{"n":11,"name":"Other"},{"n":29,"name":"Receipts"}]},{"persona":"corporate_cardholder","week":"2026-W44","total":102,"ratings":[26,90,7],"topics":[{"n":4,"name":"App/Login"},{"n":4,"name":"Benefits"},{"n":14,"name":"Bot"},{"n":5,"name":"Card closure"},{"n":8,"name":"Card/PIN"},{"n":14,"name":"Decline"},{"n":7,"name":"Fraud/Dispute"},{"n":4,"name":"Invoice"},{"n":10,"name":"Limit"},{"n":7,"name":"Lost/Stolen"},{"n":10,"name":"Other"},{"n":15,"name":"Receipts"}]},{"persona":"corporate_cardholder","week":"2026-W45","total":85,"ratings":[25,83,9],"topics":[{"n":10,"name":"App/Login"},{"n":4,"name":"Benefits"},{"n":6,"name":"Bot"},{"n":1,"name":"Card closure"},{"n":6,"name":"Card/PIN"},{"n":17,"name":"Decline"},{"n":4,"name":"Fraud/Dispute"},{"n":10,"name":"Invoice"},{"n":6,"name":"Limit"},{"n":9,"name":"Lost/Stolen"},{"n":6,"name":"Other"},{"n":6,"name":"Receipts"}]},{"persona":"corporate_cardholder","week":"2026-W46","total":88,"ratings":[28,107,4],"topics":[{"n":5,"name":"App/Login"},{"n":2,"name":"Benefits"},{"n":7,"name":"Bot"},{"n":3,"name":"Card closure"},{"n":7,"name":"Card/PIN"},{"n":13,"name":"Decline"},{"n":2,"name":"Fraud/Dispute"},{"n":6,"name":"Invoice"},{"n":14,"name":"Limit"},{"n":8,"name":"Lost/Stolen"},{"n":11,"name":"Other"},{"n":10,"name":"Receipts"}]},{"persona":"corporate_cardholder","week":"2026-W47","total":90,"ratings":[22,78,4],"topics":[{"n":7,"name":"App/Login"},{"n":4,"name":"Benefits"},{"n":6,"name":"Bot"},{"n":4,"name":"Card closure"},{"n":12,"name":"Card/PIN"},{"n":15,"name":"Decline"},{"n":3,"name":"Fraud/Dispute"},{"n":7,"name":"Invoice"},{"n":11,"name":"Limit"},{"n":10,"name":"Lost/Stolen"},{"n":7,"name":"Other"},{"n":4,"name":"Receipts"}]},{"persona":"corporate_cardholder","week":"2026-W48","total":87,"ratings":[21,77,5],"topics":[{"n":7,"name":"App/Login"},{"n":5,"name":"Benefits"},{"n":8,"name":"Bot"},{"n":6,"name":"Card closure"},{"n":3,"name":"Card/PIN"},{"n":12,"name":"Decline"},{"n":8,"name":"Fraud/Dispute"},{"n":6,"name":"Invoice"},{"n":8,"name":"Limit"},{"n":5,"name":"Lost/Stolen"},{"n":9,"name":"Other"},{"n":10,"name":"Receipts"}]},{"persona":"private_cardholder","week":"2026-W37","total":174,"ratings":[54,200,12],"topics":[{"n":17,"name":"App/inloggning"},{"n":11,"name":"Avgifter"},{"n":20,"name":"Bedrägeri/reklamation"},{"n":16,"name":"Bonus"},{"n":26,"name":"Bot"},{"n":26,"name":"Faktura"},{"n":5,"name":"Klagomål"},{"n":7,"name":"Konto/admin"},{"n":14,"name":"Köp nekat"},{"n":7,"name":"Kredit"},{"n":13,"name":"Övrigt"},{"n":12,"name":"Spärr/kort"}]},{"persona":"private_cardholder","week":"2026-W38","total":183,"ratings":[58,213,13],"topics":[{"n":17,"name":"App/inloggning"},{"n":8,"name":"Avgifter"},{"n":22,"name":"Bedrägeri/reklamation"},{"n":16,"name":"Bonus"},{"n":33,"name":"Bot"},{"n":27,"name":"Faktura"},{"n":2,"name":"Klagomål"},{"n":4,"name":"Konto/admin"},{"n":19,"name":"Köp nekat"},{"n":5,"name":"Kredit"},{"n":15,"name":"Övrigt"},{"n":15,"name":"Spärr/kort"}]},{"persona":"private_cardholder","week":"2026-W39","total":184,"ratings":[63,218,16],"topics":[{"n":18,"name":"App/inloggning"},{"n":13,"name":"Avgifter"},{"n":17,"name":"Bedrägeri/reklamation"},{"n":11,"name":"Bonus"},{"n":29,"name":"Bot"},{"n":22,"name":"Faktura"},{"n":7,"name":"Klagomål"},{"n":5,"name":"Konto/admin"},{"n":21,"name":"Köp nekat"},{"n":10,"name":"Kredit"},{"n":12,"name":"Övrigt"},{"n":19,"name":"Spärr/kort"}]},{"persona":"private_cardholder","week":"2026-W40","total":227,"ratings":[69,254,9],"topics":[{"n":23,"name":"App/inloggning"},{"n":25,"name":"Avgifter"},{"n":13,"name":"Bedrägeri/reklamation"},{"n":15,"name":"Bonus"},{"n":47,"name":"Bot"},{"n":24,"name":"Faktura"},{"n":4,"name":"Klagomål"},{"n":8,"name":"Konto/admin"},{"n":24,"name":"Köp nekat"},{"n":10,"name":"Kredit"},{"n":16,"name":"Övrigt"},{"n":18,"name":"Spärr/kort"}]},{"persona":"private_cardholder","week":"2026-W41","total":239,"ratings":[59,219,12],"topics":[{"n":32,"name":"App/inloggning"},{"n":13,"name":"Avgifter"},{"n":16,"name":"Bedrägeri/reklamation"},{"n":14,"name":"Bonus"},{"n":51,"name":"Bot"},{"n":26,"name":"Faktura"},{"n":11,"name":"Klagomål"},{"n":9,"name":"Konto/admin"},{"n":20,"name":"Köp nekat"},{"n":7,"name":"Kredit"},{"n":24,"name":"Övrigt"},{"n":16,"name":"Spärr/kort"}]},{"persona":"private_cardholder","week":"2026-W42","total":218,"ratings":[61,210,14],"topics":[{"n":23,"name":"App/inloggning"},{"n":10,"name":"Avgifter"},{"n":20,"name":"Bedrägeri/reklamation"},{"n":16,"name":"Bonus"},{"n":36,"name":"Bot"},{"n":21,"name":"Faktura"},{"n":5,"name":"Klagomål"},{"n":9,"name":"Konto/admin"},{"n":15,"name":"Köp nekat"},{"n":20,"name":"Kredit"},{"n":14,"name":"Övrigt"},{"n":29,"name":"Spärr/kort"}]},{"persona":"private_cardholder","week":"2026-W43","total":213,"ratings":[68,235,16],"topics":[{"n":15,"name":"App/inloggning"},{"n":9,"name":"Avgifter"},{"n":26,"name":"Bedrägeri/reklamation"},{"n":12,"name":"Bonus"},{"n":32,"name":"Bot"},{"n":24,"name":"Faktura"},{"n":13,"name":"Klagomål"},{"n":6,"name":"Konto/admin"},{"n":21,"name":"Köp nekat"},{"n":11,"name":"Kredit"},{"n":15,"name":"Övrigt"},{"n":29,"name":"Spärr/kort"}]},{"persona":"private_cardholder","week":"2026-W44","total":239,"ratings":[73,256,16],"topics":[{"n":9,"name":"App/inloggning"},{"n":7,"name":"Avgifter"},{"n":29,"name":"Bedrägeri/reklamation"},{"n":18,"name":"Bonus"},{"n":42,"name":"Bot"},{"n":34,"name":"Faktura"},{"n":7,"name":"Klagomål"},{"n":9,"name":"Konto/admin"},{"n":32,"name":"Köp nekat"},{"n":7,"name":"Kredit"},{"n":19,"name":"Övrigt"},{"n":26,"name":"Spärr/kort"}]},{"persona":"private_cardholder","week":"2026-W45","total":232,"ratings":[75,258,21],"topics":[{"n":19,"name":"App/inloggning"},{"n":17,"name":"Avgifter"},{"n":26,"name":"Bedrägeri/reklamation"},{"n":12,"name":"Bonus"},{"n":41,"name":"Bot"},{"n":35,"name":"Faktura"},{"n":11,"name":"Klagomål"},{"n":5,"name":"Konto/admin"},{"n":21,"name":"Köp nekat"},{"n":9,"name":"Kredit"},{"n":20,"name":"Övrigt"},{"n":16,"name":"Spärr/kort"}]},{"persona":"private_cardholder","week":"2026-W46","total":237,"ratings":[83,299,20],"topics":[{"n":13,"name":"App/inloggning"},{"n":22,"name":"Avgifter"},{"n":29,"name":"Bedrägeri/reklamation"},{"n":16,"name":"Bonus"},{"n":45,"name":"Bot"},{"n":40,"name":"Faktura"},{"n":5,"name":"Klagomål"},{"n":8,"name":"Konto/admin"},{"n":15,"name":"Köp nekat"},{"n":4,"name":"Kredit"},{"n":19,"name":"Övrigt"},{"n":21,"name":"Spärr/kort"}]},{"persona":"private_cardholder","week":"2026-W47","total":260,"ratings":[65,230,17],"topics":[{"n":12,"name":"App/inloggning"},{"n":21,"name":"Avgifter"},{"n":37,"name":"Bedrägeri/reklamation"},{"n":24,"name":"Bonus"},{"n":38,"name":"Bot"},{"n":30,"name":"Faktura"},{"n":9,"name":"Klagomål"},{"n":7,"name":"Konto/admin"},{"n":23,"name":"Köp nekat"},{"n":23,"name":"Kredit"},{"n":22,"name":"Övrigt"},{"n":14,"name":"Spärr/kort"}]},{"persona":"private_cardholder","week":"2026-W48","total":286,"ratings":[74,276,15],"topics":[{"n":11,"name":"App/inloggning"},{"n":20,"name":"Avgifter"},{"n":45,"name":"Bedrägeri/reklamation"},{"n":15,"name":"Bonus"},{"n":34,"name":"Bot"},{"n":44,"name":"Faktura"},{"n":11,"name":"Klagomål"},{"n":12,"name":"Konto/admin"},{"n":34,"name":"Köp nekat"},{"n":7,"name":"Kredit"},{"n":31,"name":"Övrigt"},{"n":22,"name":"Spärr/kort"}]}];
+const glossary={"App/inloggning":"App and login","App/Login":"App and login","Faktura":"Invoices","Invoice":"Invoices","Köp nekat":"Declined purchases","Decline":"Declined purchases","Bedrägeri/reklamation":"Fraud and disputes","Fraud/Dispute":"Fraud and disputes","Spärr/kort":"Card blocking and controls","Avgifter":"Fees","Bonus":"Rewards and benefits","Benefits":"Rewards and benefits","Övrigt":"Other","Kredit":"Credit","Klagomål":"Complaints","Konto/admin":"Account administration"};
+const personas={private_cardholder:"Private cardholder",corporate_cardholder:"Corporate cardholder",corporate_administrator:"Corporate administrator"};
+const feelings={pin:"Customer intent · Self-service access",receipts:"Reported friction · Duplicate manual work",cost:"Reported friction · Manual allocation",sign:"Reported friction · Unable to complete signing"};
+const teams={Buy:["Card Acquisition"],Pay:["Payments"],Info:["Reporting and Statements"],"Digital Channels":["App Experience","Identity and Access"]};
+const $=id=>document.getElementById(id);
+const fmt=new Intl.NumberFormat("en-GB");
+const weeks=[...new Set(data.map(row=>row.week))].sort();
+const storageKey="seb-customer-signals-assignments-v3";
+let assignments={}, selectedId=null;
+try {
+ const stored=localStorage.getItem(storageKey);
+ if(stored) assignments=JSON.parse(stored);
+ else {
+  const previous=JSON.parse(localStorage.getItem("seb-customer-signals-action-groups-v2")||"[]");
+  for(const group of previous){
+   const {items,action,state,priority,path,train,team,notes}=group;
+   for(const id of items) assignments[id]={action,state,priority,path,train,team,notes};
+  }
+ }
+} catch {}
+function options(id,values){$(id).replaceChildren(...values.map(([value,label])=>new Option(label,value)));}
+options("persona",[["","All stakeholders"],...Object.entries(personas)]);
+options("week",weeks.map(w=>[w,w.replace("-W"," · week ")]));
+$("week").value=weeks.at(-1);
+options("train",[["","Select release train"],...Object.keys(teams).map(t=>[t,t])]);
+function tab(id){
+for(const name of ["performance","actions"]){
+$(name).hidden=name!==id;
+$(name+"Tab").setAttribute("aria-current",String(name===id));
+}
+if(id==="actions")renderActions();
+}
+$("performanceTab").onclick=()=>tab("performance");
+$("actionsTab").onclick=()=>tab("actions");
+function aggregate(rows){
+const result={total:0,responded:0,ratingSum:0,low:0,topics:{}};
+for(const row of rows){
+result.total+=row.total;
+result.responded+=row.ratings[0];
+result.ratingSum+=row.ratings[1];
+result.low+=row.ratings[2];
+for(const item of row.topics){
+const key=glossary[item.name]||item.name;
+if(key!=="Bot"&&key!=="Other")result.topics[key]=(result.topics[key]||0)+item.n;
+}
+}
+return result;
+}
+const share=(n,total)=>total?100*n/total:0;
+function performance(){
+const persona=$("persona").value;
+const week=$("week").value;
+const rows=data.filter(row=>!persona||row.persona===persona);
+const index=weeks.indexOf(week);
+const current=aggregate(rows.filter(row=>row.week===week));
+const previous=aggregate(rows.filter(row=>row.week===weeks[index-1]));
+const cards=[
+["Support contacts",fmt.format(current.total),previous.total?fmt.format(previous.total)+" in prior week":"First week in dataset"],
+["Customer satisfaction",current.responded?(current.ratingSum/current.responded).toFixed(1)+" / 5":"—",fmt.format(current.responded)+" survey responses"],
+["Low satisfaction",current.responded?share(current.low,current.responded).toFixed(0)+"%":"—","Ratings of 1–2 among respondents"]
+];
+$("kpis").innerHTML=cards.map(([name,value,detail])=>'<div class="panel"><span class="kpi-label">'+name+'</span><strong class="metric">'+value+'</strong><small>'+detail+'</small></div>').join("");
+const topics=Object.entries(current.topics).sort((a,b)=>b[1]-a[1]);
+$("topics").innerHTML=topics.slice(0,6).map(([name,n])=>'<div class="row spread"><b>'+name+'</b><small>'+n+' · '+share(n,current.total).toFixed(1)+'%</small></div><div class="bar"><i style="width:'+100*n/topics[0][1]+'%"></i></div>').join("")+'<small>Share of all selected contacts. Generic Bot and Other labels are omitted from the ranking.</small>';
+const trending=topics.filter(([,n])=>n>=3).map(([name,n])=>[name,n,share(n,current.total)-share(previous.topics[name]||0,previous.total)]).filter(item=>item[2]>0).sort((a,b)=>b[2]-a[2]).slice(0,3);
+$("trends").innerHTML=previous.total&&trending.length?trending.map(([name,n,d])=>'<p class="row spread"><b>'+name+'</b><span class="badge">+'+d.toFixed(1)+' pp · '+n+' contacts</span></p>').join(""):('<p>'+ (previous.total?"No qualifying increase this week.":"No prior week for comparison.")+'</p>');
+const volumes=weeks.map(w=>aggregate(rows.filter(r=>r.week===w)).total);
+$("chart").innerHTML=volumes.map((v,i)=>'<div title="'+weeks[i]+': '+v+'" style="height:'+100*v/Math.max(...volumes)+'%;opacity:'+(i===index?1:.55)+'"></div>').join("");
+$("chartText").textContent=weeks.map((w,i)=>w.slice(-3)+" "+volumes[i]).join(" · ");
+const relevant=examples.filter(item=>!persona||item.person===personas[persona]);
+$("insights").innerHTML=relevant.map(item=>'<article class="record"><div class="row spread"><h3>'+item.title+'</h3><button type="button" data-stage="'+item.id+'">Assign finding</button></div><small>'+item.person+' · '+feelings[item.id]+'</small><p>'+item.summary+'</p><details><summary>View evidence</summary><div class="evidence">'+item.evidence+'<br><small>'+item.source+'</small></div></details></article>').join("");
+}
+$("persona").onchange=$("week").onchange=performance;
+$("insights").onclick=event=>{
+const id=event.target.dataset.stage;if(!id)return;
+tab("actions");openFinding(id);
+};
+function routing(value=""){
+const via=$("path").value==="train";
+const hasTeam=$("path").value!=="review";
+$("trainField").hidden=!via;$("train").required=via;
+$("teamField").hidden=!hasTeam;$("team").required=hasTeam;
+const list=via?teams[$("train").value]||[]:[...Object.values(teams).flat(),"Corporate Onboarding"];
+options("team",[["","Select team"],...list.map(t=>[t,t])]);$("team").value=value;
+}
+$("path").onchange=()=>routing();$("train").onchange=()=>routing();
+function findingOwner(assignment){
+ if(!assignment)return "Unassigned";
+ if(assignment.path==="train")return assignment.train+" / "+assignment.team;
+ if(assignment.path==="direct")return assignment.team;
+ return "Needs routing review";
+}
+function renderActions(){
+ $("inbox").replaceChildren();
+ for(const item of examples){
+  const row=document.createElement("article");row.className="record";
+  const button=document.createElement("button");button.type="button";
+  button.textContent=item.title;button.setAttribute("aria-pressed",String(selectedId===item.id));
+  button.onclick=()=>openFinding(item.id);
+  const details=document.createElement("p");details.className="muted";
+  details.textContent=[item.person,item.type,findingOwner(assignments[item.id])].join(" · ");
+  row.append(button,details);$("inbox").append(row);
+ }
+ $("assignments").replaceChildren();
+ for(const item of examples){
+  const assignment=assignments[item.id];if(!assignment)continue;
+  const row=document.createElement("article");row.className="record";
+  const title=document.createElement("h3");title.textContent=item.title;
+  const details=document.createElement("p");
+  details.textContent=[assignment.state,assignment.priority,assignment.action,findingOwner(assignment)].join(" · ");
+  const edit=document.createElement("button");edit.type="button";edit.textContent="Edit assignment";
+  edit.onclick=()=>openFinding(item.id);
+  row.append(title,details);
+  if(assignment.notes){const notes=document.createElement("p");notes.textContent=assignment.notes;row.append(notes);}
+  row.append(edit);$("assignments").append(row);
+ }
+ if(!$("assignments").childElementCount)$("assignments").textContent="No findings assigned or reviewed yet.";
+}
+function openFinding(id){
+ const item=examples.find(example=>example.id===id);if(!item)return;
+ selectedId=id;
+ const saved=assignments[id];
+ $("formTitle").textContent=item.title;
+ $("formTitle").tabIndex=-1;
+ $("actionPrompt").hidden=true;
+ $("actionForm").hidden=false;
+ $("actionForm").reset();
+ $("status").textContent="";
+ $("findingEvidence").innerHTML='<small>'+item.person+' · '+item.area+' · '+item.type+'</small><p>'+item.summary+'</p><details><summary>View evidence</summary><div class="evidence">'+item.evidence+'<br><small>'+item.source+'</small></div></details>';
+ const priority=item.priority.split(" · ")[0];
+ $("priority").value=priority;
+ if(saved){
+  for(const [field,key] of [["nextAction","action"],["state","state"],["priority","priority"],["path","path"],["train","train"],["notes","notes"]])$(field).value=saved[key];
+  routing(saved.team);
+ }else routing();
+ renderActions();$("formTitle").focus();
+}
+$("reset").onclick=()=>{
+ selectedId=null;$("formTitle").textContent="Assign finding";
+ $("actionForm").hidden=true;$("actionPrompt").hidden=false;
+ renderActions();$("inbox").querySelector("button")?.focus();
+};
+$("actionForm").onsubmit=event=>{
+ event.preventDefault();if(!selectedId)return;
+ const path=$("path").value;
+ assignments[selectedId]={action:$("nextAction").value,state:$("state").value,priority:$("priority").value,path,train:path==="train"?$("train").value:"",team:path==="review"?"":$("team").value,notes:$("notes").value.trim()};
+ let persisted=true;
+ try{localStorage.setItem(storageKey,JSON.stringify(assignments));}catch{persisted=false;}
+ renderActions();
+ $("status").textContent=persisted?"Assignment saved.":"Assignment saved for this session.";
+};
+routing();performance();renderActions();
+</script></html>

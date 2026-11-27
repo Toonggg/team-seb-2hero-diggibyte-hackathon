@@ -1,0 +1,120 @@
+#!/usr/bin/env bash
+# Self-contained SEB Kort voice transcription & HTML viewer runner.
+#
+# Usage:
+#   ./run                             # Pick a folder of .wav files (or press Enter for default), transcribe, and open viewer
+#   ./run /path/to/wav-folder         # Transcribe all .wav files in the given folder and open viewer
+#   ./run --pick                      # Open macOS Finder folder picker to select a .wav folder
+#   ./run --model small               # Use a larger Whisper model (tiny, base, small, medium)
+#   ./run --limit 5                   # Transcribe only the first 5 .wav files
+#   ./run --force                     # Re-transcribe even if already cached
+#   ./run --skip-transcribe           # Rebuild & open viewer from existing output/transcripts.jsonl
+#   ./run --no-open                   # Build viewer without opening browser
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+DEFAULT_AUDIO_DIR="${REPO_ROOT}/SEB Kort hackathon synthetic data share/full dataset/audio"
+
+AUDIO_DIR=""
+PICK_FOLDER=false
+MODEL="base"
+LIMIT=""
+FORCE=false
+SKIP_TRANSCRIBE=false
+OPEN_BROWSER=true
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --audio-dir)       AUDIO_DIR="$2"; shift 2 ;;
+    --pick)            PICK_FOLDER=true; shift ;;
+    --model)           MODEL="$2"; shift 2 ;;
+    --limit)           LIMIT="$2"; shift 2 ;;
+    --force)           FORCE=true; shift ;;
+    --skip-transcribe) SKIP_TRANSCRIBE=true; shift ;;
+    --no-open)         OPEN_BROWSER=false; shift ;;
+    -h|--help)
+      sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//'
+      exit 0
+      ;;
+    -*)
+      echo "Unknown option: $1 (use --help for usage)" >&2
+      exit 1
+      ;;
+    *)
+      AUDIO_DIR="$1"; shift ;;
+  esac
+done
+
+# 1. Resolve folder containing .wav files (opens interactive CLI folder selector by default)
+if [[ -z "${AUDIO_DIR}" ]]; then
+  START_DIR="${REPO_ROOT}"
+  if [[ -d "${DEFAULT_AUDIO_DIR}" ]]; then
+    START_DIR="${DEFAULT_AUDIO_DIR}"
+  elif [[ -d "${HOME}/Downloads" ]]; then
+    START_DIR="${HOME}/Downloads"
+  fi
+
+  if [[ -t 0 ]]; then
+    AUDIO_DIR="$(python3 "${SCRIPT_DIR}/pick_folder.py" "${START_DIR}")" || {
+      echo "Cancelled — no folder selected." >&2
+      exit 1
+    }
+  elif [[ -d "${DEFAULT_AUDIO_DIR}" ]]; then
+    AUDIO_DIR="${DEFAULT_AUDIO_DIR}"
+  fi
+fi
+
+# Expand ~ and strip trailing slash
+AUDIO_DIR="${AUDIO_DIR/#\~/$HOME}"
+AUDIO_DIR="${AUDIO_DIR%/}"
+
+if [[ -z "${AUDIO_DIR}" || ! -d "${AUDIO_DIR}" ]]; then
+  echo "Error: valid .wav folder not provided or not found: '${AUDIO_DIR}'" >&2
+  echo "Usage: ./run /path/to/folder-with-wavs" >&2
+  exit 1
+fi
+
+# 2. Ensure a working Python virtual environment with faster-whisper
+PYTHON_BIN=""
+if [[ -x "${SCRIPT_DIR}/.venv/bin/python" ]]; then
+  PYTHON_BIN="${SCRIPT_DIR}/.venv/bin/python"
+elif [[ -x "${REPO_ROOT}/.venv/bin/python" ]]; then
+  PYTHON_BIN="${REPO_ROOT}/.venv/bin/python"
+else
+  echo "==> Setting up local Python environment in ${SCRIPT_DIR}/.venv ..."
+  PY_CANDIDATE="$(command -v python3.12 || command -v python3.13 || command -v python3.11 || command -v python3)"
+  "${PY_CANDIDATE}" -m venv "${SCRIPT_DIR}/.venv"
+  PYTHON_BIN="${SCRIPT_DIR}/.venv/bin/python"
+  "${SCRIPT_DIR}/.venv/bin/pip" install -q -r "${SCRIPT_DIR}/requirements.txt"
+fi
+
+OUT_DIR="${SCRIPT_DIR}/output"
+VIEWER="${OUT_DIR}/viewer.html"
+
+# 3. Transcribe .wav files
+if [[ "${SKIP_TRANSCRIBE}" == false ]]; then
+  echo "==> [1/2] Transcribing .wav files in: ${AUDIO_DIR} (model: ${MODEL})..."
+  ARGS=(--audio-dir "${AUDIO_DIR}" --out-dir "${OUT_DIR}" --model "${MODEL}")
+  [[ -n "${LIMIT}" ]] && ARGS+=(--limit "${LIMIT}")
+  [[ "${FORCE}" == true ]] && ARGS+=(--force)
+  "${PYTHON_BIN}" "${SCRIPT_DIR}/transcribe_audio.py" "${ARGS[@]}"
+else
+  echo "==> [1/2] Skipping transcription — using existing ${OUT_DIR}/transcripts.jsonl"
+fi
+
+# 4. Build interactive HTML dashboard/viewer
+echo "==> [2/2] Building HTML transcript viewer..."
+"${PYTHON_BIN}" "${SCRIPT_DIR}/build_viewer.py" \
+  --audio-dir "${AUDIO_DIR}" \
+  --jsonl "${OUT_DIR}/transcripts.jsonl" \
+  --out "${VIEWER}"
+
+echo ""
+echo "Done! Interactive transcript viewer ready at:"
+echo "  ${VIEWER}"
+
+if [[ "${OPEN_BROWSER}" == true ]]; then
+  open "${VIEWER}" 2>/dev/null || xdg-open "${VIEWER}" 2>/dev/null || true
+fi

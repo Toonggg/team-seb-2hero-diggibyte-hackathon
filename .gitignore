@@ -51,8 +51,9 @@ htmlcov/
 .databrickscfg
 .databricks/
 
-# Generated scraper outputs
+# Generated scraper & transcription outputs
 google-review-scraping/output/
+transcription/output/
 
 # Large media & local data
 *.mp4
